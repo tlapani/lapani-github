@@ -17,11 +17,11 @@
 				"userProperties": [
 					{
 						"name": "Source",
-						"value": "themes.csv"
+						"value": "@{pipeline().parameters.FileName}"
 					},
 					{
 						"name": "Destination",
-						"value": "lego//themes.csv"
+						"value": "lego//@{pipeline().parameters.FileName}.csv"
 					}
 				],
 				"typeProperties": {
@@ -54,7 +54,7 @@
 							"referenceName": "ADLB_lapaniazureblob",
 							"type": "LinkedServiceReference"
 						},
-						"path": "lego/errors/themes"
+						"path": "lego/errors/@{pipeline().parameters.FileName}.csv"
 					}
 				},
 				"inputs": [
