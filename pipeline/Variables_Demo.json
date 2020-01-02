@@ -65,6 +65,20 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "Setting ListOfFiles Variable",
+				"description": "Setting ListOfFiles Variable dynamically",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ListOfFiles",
+					"value": {
+						"value": "Load @{length(variables('Files'))} files: @{join(variables('Files'),',')}",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
