@@ -74,7 +74,10 @@
 						"referenceName": "ADLS_Lego_Dynamics",
 						"type": "DatasetReference",
 						"parameters": {
-							"FileName": "FileName"
+							"FileName": {
+								"value": "@pipeline().parameters.FileName",
+								"type": "Expression"
+							}
 						}
 					}
 				]
