@@ -71,7 +71,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "ADLS_Lego_Dynamics",
+						"referenceName": "ADLS_Lego_Dynamic",
 						"type": "DatasetReference",
 						"parameters": {
 							"FileName": {
