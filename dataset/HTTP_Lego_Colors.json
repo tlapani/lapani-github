@@ -10,7 +10,8 @@
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "HttpServerLocation"
+				"type": "HttpServerLocation",
+				"relativeUrl": "colors.csv"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
