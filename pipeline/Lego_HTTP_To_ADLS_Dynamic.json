@@ -54,7 +54,10 @@
 							"referenceName": "ADLB_lapaniazureblob",
 							"type": "LinkedServiceReference"
 						},
-						"path": "lego/errors/@{pipeline().parameters.FileName}.csv"
+						"path": {
+							"value": "lego/errors/@{pipeline().parameters.FileName}.csv",
+							"type": "Expression"
+						}
 					}
 				},
 				"inputs": [
