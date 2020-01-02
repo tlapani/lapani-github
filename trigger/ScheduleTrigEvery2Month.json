@@ -1,0 +1,42 @@
+{
+	"name": "ScheduleTrigEvery2Month",
+	"properties": {
+		"description": "Run a pipeline on each 4th Saturday  after 2 month and continue this until 2 years",
+		"annotations": [
+			"FourthSundayOfMonthAt2AM"
+		],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Lego_HTTP_to_ADLS_Themes",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 2,
+				"startTime": "2019-12-27T16:08:00Z",
+				"endTime": "2021-12-27T16:08:00Z",
+				"timeZone": "UTC",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						2
+					],
+					"monthlyOccurrences": [
+						{
+							"day": "Saturday",
+							"occurrence": 4
+						}
+					]
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,22 @@
+{
+	"name": "Http_Lego_Sets",
+	"properties": {
+		"description": "To download sets.csv file from http to ADLS.",
+		"linkedServiceName": {
+			"referenceName": "Http_Lego",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

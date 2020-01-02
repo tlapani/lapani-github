@@ -1,0 +1,7 @@
+{
+	"name": "LapaniSelfHostedIRtoSSMSonPremise",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Self hosted Integration run time service to  on-premise Sql server database in local server"
+	}
+}

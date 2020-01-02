@@ -1,0 +1,33 @@
+{
+	"name": "Lego Themes ADSL to ASQL",
+	"properties": {
+		"description": "This dataflow loads themes data from Azure Data storage lake to Azure SQL database",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ADLS_Lego_Themes",
+						"type": "DatasetReference"
+					},
+					"name": "ADLSLegoThemesData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTableThemes",
+						"type": "DatasetReference"
+					},
+					"name": "ASQLLegoThemes"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DeriveLoadDate"
+				}
+			],
+			"script": "\n\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tparent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true) ~> ADLSLegoThemesData\nADLSLegoThemesData derive(load_date = currentDate()) ~> DeriveLoadDate\nDeriveLoadDate sink(input(\n\t\tid as integer,\n\t\tname as string,\n\t\tparent_id as integer,\n\t\tload_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tname,\n\t\tparent_id,\n\t\tload_date\n\t)) ~> ASQLLegoThemes"
+		}
+	}
+}

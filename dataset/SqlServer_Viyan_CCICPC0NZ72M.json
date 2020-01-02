@@ -1,0 +1,33 @@
+{
+	"name": "SqlServer_Viyan_CCICPC0NZ72M",
+	"properties": {
+		"description": "Dataset to import themes data from ADLS to local SQL server Viyan database table lego.themes",
+		"linkedServiceName": {
+			"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "parent_id",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "lego",
+			"table": "themes"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,18 @@
+{
+	"name": "SqlServer_Viyandb_CCICPC0NZ72M",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Connection to on-premise database on local SQL server CCICPC0NZ72M via self-hosted Azure integration runtime service",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=True;data source=CCICPC0NZ72M;initial catalog=viyan",
+			"userName": "CCIC\\tlapani",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI3ZTY1OGE0Ny1iY2Y1LTQ0MzctOTJiMi0yYzg4NmMzMTY4YmQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "LapaniSelfHostedIRtoSSMSonPremise",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"name": "Execute SSIS package",
+	"properties": {
+		"description": "Email record counts",
+		"activities": [
+			{
+				"name": "Part81_Email_RecordCounts",
+				"description": "Email record counts",
+				"type": "ExecuteSSISPackage",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"packageLocation": {
+						"packagePath": "Lego/TechBrother/Part170_Union_Xtion_To_Join_TwoSources.dtsx",
+						"type": "SSISDB"
+					},
+					"environmentPath": null,
+					"connectVia": {
+						"referenceName": "LapaniAzureSSISIR",
+						"type": "IntegrationRuntimeReference"
+					},
+					"loggingLevel": "Basic"
+				}
+			}
+		],
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
