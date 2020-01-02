@@ -43,13 +43,24 @@
 					"ifTrueActivities": [
 						{
 							"name": "Appending files variable",
-							"description": "Appending additional file names into existing array contained by Files variable",
+							"description": "Appending one file name into existing array contained by variable",
 							"type": "AppendVariable",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "Files",
 								"value": "inventory_sets"
+							}
+						},
+						{
+							"name": "Appending Files variable again",
+							"description": "Appending one more filename into existing list of filenames",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Files",
+								"value": "part_relationships"
 							}
 						}
 					]
