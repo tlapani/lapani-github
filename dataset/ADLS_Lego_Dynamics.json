@@ -18,7 +18,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@dataset().FileName",
+					"value": "@{dataset().FileName}.csv",
 					"type": "Expression"
 				},
 				"fileSystem": "lego"
