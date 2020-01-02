@@ -1,5 +1,5 @@
 {
-	"name": "ADLS_Lego_Dynamics",
+	"name": "ADLS_Lego_Dynamic",
 	"properties": {
 		"description": "Dynamic sink dataset to receive files from HTTP to ADSL",
 		"linkedServiceName": {
