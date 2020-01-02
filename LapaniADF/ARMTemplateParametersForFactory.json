@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "LapaniADF"
+		},
+		"ADLB_lapaniazureblob_connectionString": {
+			"value": ""
+		},
+		"ADLS_lapaniazuredatalake_accountKey": {
+			"value": ""
+		},
+		"ASQLDB_LS_Entertainment_connectionString": {
+			"value": ""
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
+			"value": ""
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
+			"value": ""
+		},
+		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
+			"value": "https://lapaniazuredatalake.dfs.core.windows.net"
+		},
+		"Http_Lego_properties_typeProperties_url": {
+			"value": "https://cdn.rebrickable.com/media/downloads/"
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
+			"value": "CCIC\\tlapani"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"value": "lapaniserver.database.windows.net"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"value": "lapani"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"value": ""
+		}
+	}
+}

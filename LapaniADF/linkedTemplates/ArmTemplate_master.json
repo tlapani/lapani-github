@@ -1,0 +1,118 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "LapaniADF"
+		},
+		"ADLB_lapaniazureblob_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ADLB_lapaniazureblob'"
+		},
+		"ADLS_lapaniazuredatalake_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ADLS_lapaniazuredatalake'"
+		},
+		"ASQLDB_LS_Entertainment_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ASQLDB_LS_Entertainment'"
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
+		},
+		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://lapaniazuredatalake.dfs.core.windows.net"
+		},
+		"Http_Lego_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://cdn.rebrickable.com/media/downloads/"
+		},
+		"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "CCIC\\tlapani"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+			"type": "string",
+			"defaultValue": "lapaniserver.database.windows.net"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+			"type": "string",
+			"defaultValue": "lapani"
+		},
+		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+			"type": "secureString"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ADLB_lapaniazureblob_connectionString": {
+						"value": "[parameters('ADLB_lapaniazureblob_connectionString')]"
+					},
+					"ADLS_lapaniazuredatalake_accountKey": {
+						"value": "[parameters('ADLS_lapaniazuredatalake_accountKey')]"
+					},
+					"ASQLDB_LS_Entertainment_connectionString": {
+						"value": "[parameters('ASQLDB_LS_Entertainment_connectionString')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_connectionString')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_password": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_password')]"
+					},
+					"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
+						"value": "[parameters('ADLS_lapaniazuredatalake_properties_typeProperties_url')]"
+					},
+					"Http_Lego_properties_typeProperties_url": {
+						"value": "[parameters('Http_Lego_properties_typeProperties_url')]"
+					},
+					"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint": {
+						"value": "[parameters('LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogServerEndpoint')]"
+					},
+					"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName": {
+						"value": "[parameters('LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminUserName')]"
+					},
+					"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
+						"value": "[parameters('LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
