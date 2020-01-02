@@ -927,6 +927,115 @@
 				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlTableThemes')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Variables_Demo')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline to show how variables work in ADF.",
+				"activities": [
+					{
+						"name": "Setting File variable",
+						"description": "Assigning array to File variable",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Files",
+							"value": [
+								"colors",
+								"inventories",
+								"inventory_parts",
+								"part_categories",
+								"parts",
+								"sets",
+								"themes"
+							]
+						}
+					},
+					{
+						"name": "Whether to load all files",
+						"description": "Condition decides whether we loading all files or not",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Setting File variable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@pipeline().parameters.LoadAllFiles",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Appending files variable",
+									"description": "Appending one file name into existing array contained by variable",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "Files",
+										"value": "inventory_sets"
+									}
+								},
+								{
+									"name": "Appending Files variable again",
+									"description": "Appending one more filename into existing list of filenames",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "Files",
+										"value": "part_relationships"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Setting ListOfFiles Variable",
+						"description": "Setting ListOfFiles Variable dynamically",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Whether to load all files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ListOfFiles",
+							"value": {
+								"value": "Load @{length(variables('Files'))} files: @{join(variables('Files'),',')}",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"parameters": {
+					"LoadAllFiles": {
+						"type": "bool"
+					}
+				},
+				"variables": {
+					"Files": {
+						"type": "Array"
+					},
+					"ListOfFiles": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }
