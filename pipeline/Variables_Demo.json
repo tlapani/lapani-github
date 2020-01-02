@@ -21,6 +21,39 @@
 						"themes"
 					]
 				}
+			},
+			{
+				"name": "Whether to load all files",
+				"description": "Condition decides whether we loading all files or not",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Setting File variable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@pipeline().parameters.LoadAllFiles",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Appending files variable",
+							"description": "Appending additional file names into existing array contained by Files variable",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Files",
+								"value": "inventory_sets"
+							}
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
