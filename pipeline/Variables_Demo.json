@@ -1,0 +1,20 @@
+{
+	"name": "Variables_Demo",
+	"properties": {
+		"description": "Pipeline to show how variables work in ADF.",
+		"parameters": {
+			"LoadAllFiles": {
+				"type": "bool"
+			}
+		},
+		"variables": {
+			"Files": {
+				"type": "Array"
+			},
+			"ListOfFiles": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
