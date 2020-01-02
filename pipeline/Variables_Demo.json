@@ -2,6 +2,27 @@
 	"name": "Variables_Demo",
 	"properties": {
 		"description": "Pipeline to show how variables work in ADF.",
+		"activities": [
+			{
+				"name": "Setting File variable",
+				"description": "Assigning array to File variable",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Files",
+					"value": [
+						"colors",
+						"inventories",
+						"inventory_parts",
+						"part_categories",
+						"parts",
+						"sets",
+						"themes"
+					]
+				}
+			}
+		],
 		"parameters": {
 			"LoadAllFiles": {
 				"type": "bool"
