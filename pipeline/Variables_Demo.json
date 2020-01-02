@@ -70,7 +70,14 @@
 				"name": "Setting ListOfFiles Variable",
 				"description": "Setting ListOfFiles Variable dynamically",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Whether to load all files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "ListOfFiles",
