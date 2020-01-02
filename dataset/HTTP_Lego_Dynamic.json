@@ -1,16 +1,25 @@
 {
-	"name": "HTTP_Lego_Sets",
+	"name": "HTTP_Lego_Dynamic",
 	"properties": {
-		"description": "To download sets.csv file from http to ADLS.",
+		"description": "This was static dataset to download sets.csv file from http to ADLS. but now changed to dynamic by adding Relative URL and other config.",
 		"linkedServiceName": {
 			"referenceName": "Http_Lego",
 			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
-				"type": "HttpServerLocation"
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				}
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
