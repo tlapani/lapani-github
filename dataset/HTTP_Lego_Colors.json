@@ -1,7 +1,7 @@
 {
 	"name": "HTTP_Lego_Colors",
 	"properties": {
-		"description": "Download colors.csv from HTTP to ADLS",
+		"description": "Download colors.csv from HTTP to ADLS.",
 		"linkedServiceName": {
 			"referenceName": "Http_Lego",
 			"type": "LinkedServiceReference"
