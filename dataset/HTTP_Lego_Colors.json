@@ -1,7 +1,6 @@
 {
-	"name": "HTTP_Lego_Sets",
+	"name": "HTTP_Lego_Colors",
 	"properties": {
-		"description": "To download sets.csv file from http to ADLS.",
 		"linkedServiceName": {
 			"referenceName": "Http_Lego",
 			"type": "LinkedServiceReference"
@@ -18,6 +17,5 @@
 			"quoteChar": "\""
 		},
 		"schema": []
-	},
-	"type": "Microsoft.DataFactory/factories/datasets"
+	}
 }
