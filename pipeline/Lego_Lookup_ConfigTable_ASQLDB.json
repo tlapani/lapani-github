@@ -1,5 +1,5 @@
 {
-	"name": "Lego_Lookup_ConfigTableASQLDB",
+	"name": "Lego_Lookup_ConfigTable_ASQLDB",
 	"properties": {
 		"description": "Lookup using Azure SQL database table as source dataset",
 		"activities": [
