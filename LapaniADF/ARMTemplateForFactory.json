@@ -1137,12 +1137,40 @@
 							},
 							"firstRowOnly": true
 						}
+					},
+					{
+						"name": "HTTP_Lego_Dynamic",
+						"description": "Run existing pipeline dynamically by passing filename as parameter to pipeline received from Lookup activity",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Lookup ConfigFileADSL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"FileName": {
+									"value": "@activity('Lookup ConfigFileADSL').output.firstRow.SourceFileName",
+									"type": "Expression"
+								}
+							}
+						}
 					}
 				],
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]"
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]",
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
 			]
 		},
 		{
