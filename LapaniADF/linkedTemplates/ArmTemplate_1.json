@@ -13,11 +13,11 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile')]",
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_FirstRow')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Lookup using configuration file as source dataset",
+				"description": "Lookup using configuration file as source dataset but processing only first row",
 				"activities": [
 					{
 						"name": "Lookup ConfigFileADSL",
@@ -48,7 +48,7 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"firstRowOnly": false
+							"firstRowOnly": true
 						}
 					}
 				],
@@ -88,6 +88,50 @@
 								"parameters": {}
 							},
 							"firstRowOnly": false
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using configuration file as source dataset but processing only first row",
+				"activities": [
+					{
+						"name": "Lookup ConfigFileADSL",
+						"description": "Lookup using configuration File as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ADLS_Lego_ConfigurationFile",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
 						}
 					}
 				],
