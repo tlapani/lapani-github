@@ -1,11 +1,11 @@
 {
-	"name": "Lego_Lookup_ConfigTable_ASQLDB",
+	"name": "Lego_Lookup_ConfigTable_AllRows",
 	"properties": {
-		"description": "Lookup using Azure SQL database table as source dataset",
+		"description": "Lookup using Azure SQL database table as source dataset and process all rows",
 		"activities": [
 			{
 				"name": "Lookup Configuration Table",
-				"description": "Lookup using configuration table as source dataset",
+				"description": "Lookup using configuration table as source dataset to process all rows",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
@@ -31,6 +31,7 @@
 			},
 			{
 				"name": "ForEach File",
+				"description": "Loop through each lookup output row",
 				"type": "ForEach",
 				"dependsOn": [
 					{
@@ -46,6 +47,7 @@
 						"value": "@activity('Lookup Configuration Table').output.value",
 						"type": "Expression"
 					},
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "HTTP_to_ADLS",
