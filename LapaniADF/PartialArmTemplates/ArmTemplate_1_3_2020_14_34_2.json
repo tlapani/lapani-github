@@ -1,0 +1,202 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "LapaniADF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_ASQLDB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using Azure SQL database table as source dataset",
+				"activities": [
+					{
+						"name": "Lookup Configuration Table",
+						"description": "Lookup using configuration table as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select * from etl.ConfigurationTable where isactive=1;",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "ASQLDB_Lego_ConfigurationTable",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup Configuration Table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup Configuration Table').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "HTTP_to_ADLS",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": "@item().SourceFileName"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_AllRows')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using configuration file as source dataset but processing ALL rows",
+				"activities": [
+					{
+						"name": "Lookup ConfigFileADSL",
+						"description": "Lookup using configuration File as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ADLS_Lego_ConfigurationFile",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach file",
+						"description": "ForEach activity will receive input (lookup output) in form of array because lookup is configured to return all rows and not first row only.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Filter Active Files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Filter Active Files').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "Execute Pipeline1",
+									"description": "Run existing pipeline dynamically by passing one filename (received from Lookup activity) at a time as parameter  to pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": {
+												"value": "@item().SourceFileName",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Filter Active Files",
+						"description": "Filter lookup output based on IsActive column or field. Here we keeping rows which has IsActive value 1",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Lookup ConfigFileADSL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup ConfigFileADSL').output.value",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@equals(item().IsActive,'1')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": []
+		}
+	]
+}
