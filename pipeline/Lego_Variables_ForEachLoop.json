@@ -1,5 +1,5 @@
 {
-	"name": "Variables_ForEach_Loop_Demo",
+	"name": "Lego_Variables_ForEachLoop",
 	"properties": {
 		"description": "Pipeline to show how variables and foreach work in ADF.",
 		"activities": [
@@ -83,6 +83,7 @@
 						"value": "@variables('Files')",
 						"type": "Expression"
 					},
+					"isSequential": false,
 					"activities": [
 						{
 							"name": "Execute Lego_HTTP_to_ADSL Pipeline",
