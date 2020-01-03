@@ -1,0 +1,36 @@
+{
+	"name": "ADLS_Lego_ConfigurationFile",
+	"properties": {
+		"description": "Configuration file will be used as source dataset in a lookup",
+		"linkedServiceName": {
+			"referenceName": "ADLS_lapaniazuredatalake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "LegoConfigurationFile.csv",
+				"fileSystem": "lego"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	}
+}
