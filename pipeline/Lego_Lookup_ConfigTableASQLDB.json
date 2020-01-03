@@ -23,7 +23,7 @@
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
-						"referenceName": "Azure_Lego_ConfigurationTable",
+						"referenceName": "ASQLDB_Lego_ConfigurationTable",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false

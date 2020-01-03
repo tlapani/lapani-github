@@ -1,5 +1,5 @@
 {
-	"name": "Azure_Lego_ConfigurationTable",
+	"name": "ASQLDB_Lego_ConfigurationTable",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ASQLDB_LS_Entertainment",
