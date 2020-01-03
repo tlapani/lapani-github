@@ -166,115 +166,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Variables_Demo')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Pipeline to show how variables work in ADF.",
-				"activities": [
-					{
-						"name": "Setting File variable",
-						"description": "Assigning array to File variable",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Files",
-							"value": [
-								"colors",
-								"inventories",
-								"inventory_parts",
-								"part_categories",
-								"parts",
-								"sets",
-								"themes"
-							]
-						}
-					},
-					{
-						"name": "Whether to load all files",
-						"description": "Condition decides whether we loading all files or not",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Setting File variable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@pipeline().parameters.LoadAllFiles",
-								"type": "Expression"
-							},
-							"ifTrueActivities": [
-								{
-									"name": "Appending files variable",
-									"description": "Appending one file name into existing array contained by variable",
-									"type": "AppendVariable",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "Files",
-										"value": "inventory_sets"
-									}
-								},
-								{
-									"name": "Appending Files variable again",
-									"description": "Appending one more filename into existing list of filenames",
-									"type": "AppendVariable",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "Files",
-										"value": "part_relationships"
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Setting ListOfFiles Variable",
-						"description": "Setting ListOfFiles Variable dynamically",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Whether to load all files",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "ListOfFiles",
-							"value": {
-								"value": "Load @{length(variables('Files'))} files: @{join(variables('Files'),',')}",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"parameters": {
-					"LoadAllFiles": {
-						"type": "bool"
-					}
-				},
-				"variables": {
-					"Files": {
-						"type": "Array"
-					},
-					"ListOfFiles": {
-						"type": "String"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/Execute SSIS package')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -890,6 +781,103 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/dataflows/Lego Themes ADSL to ASQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_ADLS_to_OnPremiseSQLServer_Themes')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Copy themes data from Azure Data Storage Lake to Viyan database table lego.themse running on local sql server.\n\nUse of procedure is not required on sink tab at all.  Procedure has been used to show how to use it.",
+				"activities": [
+					{
+						"name": "ADLS_to_SqlServer",
+						"description": "Copying data from ADLS to SQlserver. Currently dataflows are supported only between clouds so using copy data activity as alternate.",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlServerSink",
+								"sqlWriterStoredProcedureName": "[[lego].[merge_themes]",
+								"sqlWriterTableType": "lego.TableTypeThemes",
+								"storedProcedureTableTypeParameterName": "var_tabletype_themes"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "id",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "parent_id",
+											"type": "String"
+										},
+										"sink": {
+											"name": "parent_id",
+											"type": "Int32"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ADLS_Lego_Themes",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "SqlServer_Viyan_CCICPC0NZ72M",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
+				"[concat(variables('factoryId'), '/datasets/SqlServer_Viyan_CCICPC0NZ72M')]"
 			]
 		}
 	]

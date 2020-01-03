@@ -929,11 +929,11 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Variables_Demo')]",
+			"name": "[concat(parameters('factoryName'), '/Variables_ForEach_Loop_Demo')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Pipeline to show how variables work in ADF.",
+				"description": "Pipeline to show how variables and foreach work in ADF.",
 				"activities": [
 					{
 						"name": "Setting File variable",
@@ -999,9 +999,8 @@
 						}
 					},
 					{
-						"name": "Setting ListOfFiles Variable",
-						"description": "Setting ListOfFiles Variable dynamically",
-						"type": "SetVariable",
+						"name": "ForEach File",
+						"type": "ForEach",
 						"dependsOn": [
 							{
 								"activity": "Whether to load all files",
@@ -1012,11 +1011,32 @@
 						],
 						"userProperties": [],
 						"typeProperties": {
-							"variableName": "ListOfFiles",
-							"value": {
-								"value": "Load @{length(variables('Files'))} files: @{join(variables('Files'),',')}",
+							"items": {
+								"value": "@variables('Files')",
 								"type": "Expression"
-							}
+							},
+							"activities": [
+								{
+									"name": "Execute Lego_HTTP_to_ADSL Pipeline",
+									"description": "Execute Dynamic Pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
 						}
 					}
 				],
@@ -1028,14 +1048,13 @@
 				"variables": {
 					"Files": {
 						"type": "Array"
-					},
-					"ListOfFiles": {
-						"type": "String"
 					}
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
+			]
 		}
 	]
 }

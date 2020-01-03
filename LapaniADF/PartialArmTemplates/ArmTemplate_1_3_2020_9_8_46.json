@@ -13,52 +13,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/ScheduleTrigEvery2Month')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Run a pipeline on each 4th Saturday  after 2 month and continue this until 2 years",
-				"annotations": [
-					"FourthSundayOfMonthAt2AM"
-				],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Lego_HTTP_to_ADLS_Themes",
-							"type": "PipelineReference"
-						},
-						"parameters": {}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Month",
-						"interval": 2,
-						"startTime": "2019-12-27T16:08:00Z",
-						"endTime": "2021-12-27T16:08:00Z",
-						"timeZone": "UTC",
-						"schedule": {
-							"minutes": [
-								0
-							],
-							"hours": [
-								2
-							],
-							"monthlyOccurrences": [
-								{
-									"day": "Saturday",
-									"occurrence": 4
-								}
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/Variables_ForEach_Loop_Demo')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
