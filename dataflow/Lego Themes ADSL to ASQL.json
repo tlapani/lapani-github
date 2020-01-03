@@ -16,7 +16,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "AzureSqlTableThemes",
+						"referenceName": "Azure_SqlTable_Themes",
 						"type": "DatasetReference"
 					},
 					"name": "ASQLLegoThemes"
