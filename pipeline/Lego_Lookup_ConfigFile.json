@@ -30,7 +30,8 @@
 					"dataset": {
 						"referenceName": "ADLS_Lego_ConfigurationFile",
 						"type": "DatasetReference"
-					}
+					},
+					"firstRowOnly": false
 				}
 			}
 		],

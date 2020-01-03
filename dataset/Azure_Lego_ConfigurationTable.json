@@ -1,0 +1,33 @@
+{
+	"name": "Azure_Lego_ConfigurationTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ASQLDB_LS_Entertainment",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SourceSystem",
+				"type": "varchar"
+			},
+			{
+				"name": "SourceFileName",
+				"type": "varchar"
+			},
+			{
+				"name": "SourceFileExtension",
+				"type": "varchar"
+			},
+			{
+				"name": "IsActive",
+				"type": "bit"
+			}
+		],
+		"typeProperties": {
+			"schema": "etl",
+			"table": "ConfigurationTable"
+		}
+	}
+}
