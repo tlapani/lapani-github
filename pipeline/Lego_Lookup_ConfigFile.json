@@ -5,7 +5,7 @@
 		"activities": [
 			{
 				"name": "Lookup Configuration File",
-				"description": "Lookup using configuration File as source dataet",
+				"description": "Lookup using configuration File as source dataset",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
