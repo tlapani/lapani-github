@@ -1,7 +1,7 @@
 {
-	"name": "Lego_Lookup_ConfigFile",
+	"name": "Lego_Lookup_ConfigFile_FirstRow",
 	"properties": {
-		"description": "Lookup using configuration file as source dataset",
+		"description": "Lookup using configuration file as source dataset but processing only first row",
 		"activities": [
 			{
 				"name": "Lookup ConfigFileADSL",
@@ -31,7 +31,7 @@
 						"referenceName": "ADLS_Lego_ConfigurationFile",
 						"type": "DatasetReference"
 					},
-					"firstRowOnly": false
+					"firstRowOnly": true
 				}
 			}
 		],
