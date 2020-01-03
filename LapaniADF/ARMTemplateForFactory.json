@@ -1107,7 +1107,7 @@
 				"description": "Lookup using configuration file as source dataset",
 				"activities": [
 					{
-						"name": "Lookup Configuration File",
+						"name": "Lookup ConfigFileADSL",
 						"description": "Lookup using configuration File as source dataset",
 						"type": "Lookup",
 						"dependsOn": [],
