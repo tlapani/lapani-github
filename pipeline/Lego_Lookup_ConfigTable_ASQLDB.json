@@ -28,6 +28,43 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEach File",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup Configuration Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup Configuration Table').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "HTTP_to_ADLS",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"FileName": "@item().SourceFileName"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
 		"annotations": []
