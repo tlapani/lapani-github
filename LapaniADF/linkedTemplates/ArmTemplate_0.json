@@ -300,7 +300,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlTableThemes')]",
+			"name": "[concat(parameters('factoryName'), '/Azure_SqlTable_Themes')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -490,6 +490,7 @@
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
+					"firstRowAsHeader": true,
 					"quoteChar": "\""
 				},
 				"schema": [
@@ -509,6 +510,44 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ADLS_lapaniazuredatalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Azure_Lego_ConfigurationTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SourceSystem",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileName",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileExtension",
+						"type": "varchar"
+					},
+					{
+						"name": "IsActive",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "etl",
+					"table": "ConfigurationTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
 			]
 		},
 		{
@@ -762,7 +801,7 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "AzureSqlTableThemes",
+								"referenceName": "Azure_SqlTable_Themes",
 								"type": "DatasetReference"
 							},
 							"name": "ASQLLegoThemes"
@@ -778,50 +817,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSqlTableThemes')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_ADLS_to_ASQL_Themes')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Pipeline to execute dataflow Lego Themes ADSL to ASQL which extracts themes data from Azure Data Storage Lake and loads into Azure SQL database.",
-				"activities": [
-					{
-						"name": "Lego Themes ADSL to ASQL",
-						"type": "ExecuteDataFlow",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataflow": {
-								"referenceName": "Lego Themes ADSL to ASQL",
-								"type": "DataFlowReference",
-								"parameters": {},
-								"datasetParameters": {
-									"ADLSLegoThemesData": {},
-									"ASQLLegoThemes": {}
-								}
-							},
-							"staging": {},
-							"compute": {
-								"coreCount": 8,
-								"computeType": "General"
-							}
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/Lego Themes ADSL to ASQL')]"
+				"[concat(variables('factoryId'), '/datasets/Azure_SqlTable_Themes')]"
 			]
 		}
 	]
