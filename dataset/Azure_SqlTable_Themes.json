@@ -1,5 +1,5 @@
 {
-	"name": "AzureSqlTableThemes",
+	"name": "Azure_SqlTable_Themes",
 	"properties": {
 		"description": "Sample",
 		"linkedServiceName": {
