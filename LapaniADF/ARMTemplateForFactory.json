@@ -1140,7 +1140,7 @@
 					},
 					{
 						"name": "HTTP_Lego_Dynamic",
-						"description": "Run existing pipeline dynamically by passing filename as parameter to pipeline received from Lookup activity",
+						"description": "Run existing pipeline dynamically by passing filename (received from Lookup activity) as parameter  to pipeline",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
@@ -1290,6 +1290,13 @@
 							},
 							"firstRowOnly": false
 						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {}
 					}
 				],
 				"annotations": []
