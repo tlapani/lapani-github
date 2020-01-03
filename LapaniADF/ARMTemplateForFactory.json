@@ -1212,15 +1212,15 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_ASQLDB')]",
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_AllRows')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Lookup using Azure SQL database table as source dataset",
+				"description": "Lookup using Azure SQL database table as source dataset and process all rows",
 				"activities": [
 					{
 						"name": "Lookup Configuration Table",
-						"description": "Lookup using configuration table as source dataset",
+						"description": "Lookup using configuration table as source dataset to process all rows",
 						"type": "Lookup",
 						"dependsOn": [],
 						"policy": {
@@ -1247,6 +1247,7 @@
 					},
 					{
 						"name": "ForEach File",
+						"description": "Loop through each lookup output row",
 						"type": "ForEach",
 						"dependsOn": [
 							{
