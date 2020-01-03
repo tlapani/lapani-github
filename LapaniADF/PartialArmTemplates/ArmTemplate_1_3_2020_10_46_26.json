@@ -1,0 +1,169 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "LapaniADF"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_Themes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Sample",
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "parent_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "load_date",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "lego",
+					"table": "themes"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego Themes ADSL to ASQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This dataflow loads themes data from Azure Data storage lake to Azure SQL database",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ADLS_Lego_Themes",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSLegoThemesData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ASQLDB_Lego_Themes",
+								"type": "DatasetReference"
+							},
+							"name": "ASQLLegoThemes"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DeriveLoadDate"
+						}
+					],
+					"script": "\n\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tparent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true) ~> ADLSLegoThemesData\nADLSLegoThemesData derive(load_date = currentDate()) ~> DeriveLoadDate\nDeriveLoadDate sink(input(\n\t\tid as integer,\n\t\tname as string,\n\t\tparent_id as integer,\n\t\tload_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tname,\n\t\tparent_id,\n\t\tload_date\n\t)) ~> ASQLLegoThemes"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_ConfigurationTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SourceSystem",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileName",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileExtension",
+						"type": "varchar"
+					},
+					{
+						"name": "IsActive",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "etl",
+					"table": "ConfigurationTable"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTableASQLDB')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using Azure SQL database table as source dataset",
+				"activities": [
+					{
+						"name": "Lookup Configuration Table",
+						"description": "Lookup using configuration table as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select * from etl.ConfigurationTable where isactive=1;",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "ASQLDB_Lego_ConfigurationTable",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_ConfigurationTable')]"
+			]
+		}
+	]
+}

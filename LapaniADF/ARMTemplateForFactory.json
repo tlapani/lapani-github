@@ -523,7 +523,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Azure_SqlTable_Themes')]",
+			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_Themes')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -909,7 +909,7 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "Azure_SqlTable_Themes",
+								"referenceName": "ASQLDB_Lego_Themes",
 								"type": "DatasetReference"
 							},
 							"name": "ASQLLegoThemes"
@@ -925,7 +925,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
-				"[concat(variables('factoryId'), '/datasets/Azure_SqlTable_Themes')]"
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]"
 			]
 		},
 		{
@@ -1146,7 +1146,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Azure_Lego_ConfigurationTable')]",
+			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_ConfigurationTable')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1210,7 +1210,7 @@
 								"queryTimeout": "02:00:00"
 							},
 							"dataset": {
-								"referenceName": "Azure_Lego_ConfigurationTable",
+								"referenceName": "ASQLDB_Lego_ConfigurationTable",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -1221,7 +1221,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Azure_Lego_ConfigurationTable')]"
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_ConfigurationTable')]"
 			]
 		}
 	]
