@@ -1184,7 +1184,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTableASQLDB')]",
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_ASQLDB')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -1225,11 +1225,11 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_AllRows')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Lookup using configuration file as source dataset but processing only first row",
+				"description": "Lookup using configuration file as source dataset but processing ALL rows",
 				"activities": [
 					{
 						"name": "Lookup ConfigFileADSL",
@@ -1260,7 +1260,7 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"firstRowOnly": true
+							"firstRowOnly": false
 						}
 					}
 				],
