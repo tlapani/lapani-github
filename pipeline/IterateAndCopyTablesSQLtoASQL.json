@@ -34,9 +34,19 @@
 									"queryTimeout": "02:00:00"
 								},
 								"sink": {
-									"type": "AzureSqlSink"
+									"type": "AzureSqlSink",
+									"preCopyScript": "truncate @{item().TABLE_SCHEMA}.@{item().TABLE_NAME}",
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
 								},
-								"enableStaging": false
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "ADLB_lapaniazureblob",
+										"type": "LinkedServiceReference"
+									},
+									"path": "sqltableasfile"
+								}
 							},
 							"inputs": [
 								{
