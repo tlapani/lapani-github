@@ -33,11 +33,20 @@
 									"sqlReaderQuery": "SELECT * FROM @{item().TABLE_SCHEMA}.@{item().TABLE_NAME}",
 									"queryTimeout": "02:00:00"
 								},
+								"sink": {
+									"type": "AzureSqlSink"
+								},
 								"enableStaging": false
 							},
 							"inputs": [
 								{
 									"referenceName": "SqlServerDataset",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "AzureSqlDatabaseDataset",
 									"type": "DatasetReference"
 								}
 							]

@@ -1,0 +1,13 @@
+{
+	"name": "AzureSqlDatabaseDataset",
+	"properties": {
+		"description": "Azure SQL database as destination dataset to copy tables from on-premise sql server database",
+		"linkedServiceName": {
+			"referenceName": "ASQLDB_LS_Entertainment",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
