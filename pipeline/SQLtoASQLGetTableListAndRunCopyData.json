@@ -30,7 +30,7 @@
 				}
 			},
 			{
-				"name": "Execute Pipeline to Copy tables",
+				"name": "Execute Pipeline IterateAndCopyTablesSQLtoASQL",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
