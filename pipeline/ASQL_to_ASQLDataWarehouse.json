@@ -35,11 +35,17 @@
 						"polyBaseSettings": {
 							"rejectValue": 0,
 							"rejectType": "value",
-							"useTypeDefault": true
-						},
-						"tableOption": "autoCreate"
+							"useTypeDefault": false
+						}
 					},
-					"enableStaging": false
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "ADLB_lapaniazureblob",
+							"type": "LinkedServiceReference"
+						},
+						"path": "sqltableasfile"
+					}
 				},
 				"inputs": [
 					{
