@@ -13,6 +13,101 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/Lego Themes ADSL to ASQL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This dataflow loads themes data from Azure Data storage lake to Azure SQL database",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ADLS_Lego_Themes",
+								"type": "DatasetReference"
+							},
+							"name": "ADLSLegoThemesData",
+							"typeProperties": {}
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ASQLDB_Lego_Themes",
+								"type": "DatasetReference"
+							},
+							"name": "ASQLLegoThemes"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DeriveLoadDate"
+						}
+					],
+					"script": "\n\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tparent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true) ~> ADLSLegoThemesData\nADLSLegoThemesData derive(load_date = currentDate()) ~> DeriveLoadDate\nDeriveLoadDate sink(input(\n\t\tid as integer,\n\t\tname as string,\n\t\tparent_id as integer,\n\t\tload_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tname,\n\t\tparent_id,\n\t\tload_date\n\t)) ~> ASQLLegoThemes"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremiseSQLEmpTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Emp table data from On-premise SQL server table",
+				"linkedServiceName": {
+					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "empno",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ename",
+						"type": "varchar"
+					},
+					{
+						"name": "job",
+						"type": "varchar"
+					},
+					{
+						"name": "mgr",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "hiredate",
+						"type": "date"
+					},
+					{
+						"name": "sal",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "comm",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "deptno",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "emp"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Lego_ADLS_to_ASQL_Themes')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -51,7 +146,9 @@
 				],
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/Lego Themes ADSL to ASQL')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Lego_ADLS_to_OnPremiseSQLServer_Themes')]",
@@ -579,6 +676,159 @@
 				"annotations": []
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremise_Emp_SQL_to_ADLS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Copying EMP table data from SQL server on premise database to ADLS",
+				"activities": [
+					{
+						"name": "CopyFromOnPremiseSqlToAzureBlob",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "dbo.emp"
+							},
+							{
+								"name": "Destination",
+								"value": "sqltableasfile//emp"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "empno",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 1
+										}
+									},
+									{
+										"source": {
+											"name": "ename",
+											"type": "String"
+										},
+										"sink": {
+											"type": "String",
+											"ordinal": 2
+										}
+									},
+									{
+										"source": {
+											"name": "job",
+											"type": "String"
+										},
+										"sink": {
+											"type": "String",
+											"ordinal": 3
+										}
+									},
+									{
+										"source": {
+											"name": "mgr",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 4
+										}
+									},
+									{
+										"source": {
+											"name": "hiredate",
+											"type": "DateTime"
+										},
+										"sink": {
+											"type": "DateTime",
+											"ordinal": 5
+										}
+									},
+									{
+										"source": {
+											"name": "sal",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 6
+										}
+									},
+									{
+										"source": {
+											"name": "comm",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 7
+										}
+									},
+									{
+										"source": {
+											"name": "deptno",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 8
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OnPremiseSQLEmpTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLB_Emp_File",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/OnPremiseSQLEmpTable')]"
+			]
 		}
 	]
 }
