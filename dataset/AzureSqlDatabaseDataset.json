@@ -16,7 +16,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": {
-				"value": "dataset().DWTableName",
+				"value": "@dataset().DWTableName",
 				"type": "Expression"
 			}
 		}
