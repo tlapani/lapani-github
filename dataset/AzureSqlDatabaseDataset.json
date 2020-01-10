@@ -9,9 +9,6 @@
 		"parameters": {
 			"DWTableName": {
 				"type": "string"
-			},
-			"DWSchemaName": {
-				"type": "string"
 			}
 		},
 		"annotations": [],
