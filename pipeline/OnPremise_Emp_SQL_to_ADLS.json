@@ -1,0 +1,7 @@
+{
+	"name": "OnPremise_Emp_SQL_to_ADLS",
+	"properties": {
+		"description": "Copying EMP table data from SQL server on premise database to ADLS",
+		"annotations": []
+	}
+}
