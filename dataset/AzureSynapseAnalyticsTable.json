@@ -7,7 +7,26 @@
 		},
 		"annotations": [],
 		"type": "AzureSqlDWTable",
-		"schema": [],
+		"schema": [
+			{
+				"name": "id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "parent_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "load_date",
+				"type": "date"
+			}
+		],
 		"typeProperties": {
 			"schema": "lego",
 			"table": "themes"
