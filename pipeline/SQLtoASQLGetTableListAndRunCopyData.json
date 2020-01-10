@@ -19,12 +19,14 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES \nwhere TABLE_SCHEMA='dbo'",
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
 						"referenceName": "SqlServerDataset",
 						"type": "DatasetReference"
-					}
+					},
+					"firstRowOnly": false
 				}
 			}
 		],
