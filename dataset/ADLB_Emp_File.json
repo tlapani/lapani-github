@@ -1,0 +1,22 @@
+{
+	"name": "ADLB_Emp_File",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLB_lapaniazureblob",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "emp",
+				"container": "sqltableasfile"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
