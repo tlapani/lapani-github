@@ -1,0 +1,7 @@
+{
+	"name": "SQLtoASQLGetTableListAndRunCopyData",
+	"properties": {
+		"description": "Get list of tables from on-premise SQL server database and then trigger another pipeline to copy those tables to Azure SQL database",
+		"annotations": []
+	}
+}
