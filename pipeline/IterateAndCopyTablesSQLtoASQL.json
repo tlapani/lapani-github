@@ -39,14 +39,7 @@
 									"tableOption": "autoCreate",
 									"disableMetricsCollection": false
 								},
-								"enableStaging": true,
-								"stagingSettings": {
-									"linkedServiceName": {
-										"referenceName": "ADLB_lapaniazureblob",
-										"type": "LinkedServiceReference"
-									},
-									"path": "sqltableasfile"
-								}
+								"enableStaging": false
 							},
 							"inputs": [
 								{
