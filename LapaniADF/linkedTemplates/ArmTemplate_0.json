@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ASQLDB_LS_Entertainment'"
 		},
+		"AzureSynapseAnalyticsDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
+		},
 		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
@@ -162,6 +166,20 @@
 				"type": "SelfHosted",
 				"description": "Self hosted Integration run time service to  on-premise Sql server database in local server",
 				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDW')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "formely known as Azure SQL data warehouse",
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalyticsDW_connectionString')]"
+				}
 			},
 			"dependsOn": []
 		},
@@ -578,6 +596,27 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsDW",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "lego",
+					"table": "themes"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsDW')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Lego_HTTP_To_ADLS_Dynamic')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -681,130 +720,6 @@
 				"[concat(variables('factoryId'), '/datasets/HTTP_Lego_Dynamic')]",
 				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Dynamic')]",
 				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_HTTP_to_ADLS_Themes')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "copy themes.csv from rebrickable to Azure Data Lake Storage",
-				"activities": [
-					{
-						"name": "Copy themes file from http to ADLS",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "themes.csv"
-							},
-							{
-								"name": "Destination",
-								"value": "lego//themes.csv"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "HttpReadSettings",
-									"requestMethod": "GET"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings",
-									"skipLineCount": 0
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"enableSkipIncompatibleRow": true,
-							"redirectIncompatibleRowSettings": {
-								"linkedServiceName": {
-									"referenceName": "ADLB_lapaniazureblob",
-									"type": "LinkedServiceReference"
-								},
-								"path": "lego/errors/themes"
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "HTTP_Lego_Themes",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ADLS_Lego_Themes",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": [
-					"Pipeline copying data from HTTPD to ADLS"
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/HTTP_Lego_Themes')]",
-				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
-				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlServer_Viyan_CCICPC0NZ72M')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Dataset to import themes data from ADLS to local SQL server Viyan database table lego.themes",
-				"linkedServiceName": {
-					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [
-					{
-						"name": "id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "name",
-						"type": "varchar"
-					},
-					{
-						"name": "parent_id",
-						"type": "int",
-						"precision": 10
-					}
-				],
-				"typeProperties": {
-					"schema": "lego",
-					"table": "themes"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SqlServer_Viyandb_CCICPC0NZ72M')]"
 			]
 		}
 	]

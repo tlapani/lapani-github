@@ -20,6 +20,9 @@
 		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
 			"value": ""
 		},
+		"AzureSynapseAnalyticsDW_connectionString": {
+			"value": ""
+		},
 		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 			"value": "https://lapaniazuredatalake.dfs.core.windows.net"
 		},

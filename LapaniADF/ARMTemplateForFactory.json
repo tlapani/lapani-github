@@ -27,6 +27,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
 		},
+		"AzureSynapseAnalyticsDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
+		},
 		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://lapaniazuredatalake.dfs.core.windows.net"
@@ -1645,6 +1649,116 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQL_to_ASQLDataWarehouse')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Load data into Azure SQL Data Warehouse (Azure Synapse Analytics)",
+				"activities": [
+					{
+						"name": "ASQLDB_to_ASQLDataWarehouse",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "lego.themes"
+							},
+							{
+								"name": "Destination",
+								"value": "."
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"allowPolyBase": true,
+								"polyBaseSettings": {
+									"rejectValue": 0,
+									"rejectType": "value",
+									"useTypeDefault": false
+								}
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "ADLB_lapaniazureblob",
+									"type": "LinkedServiceReference"
+								},
+								"path": "sqltableasfile"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ASQLDB_Lego_Themes",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSynapseAnalyticsTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable')]",
+				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDW')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "formely known as Azure SQL data warehouse",
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalyticsDW_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsDW",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "lego",
+					"table": "themes"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsDW')]"
 			]
 		}
 	]
