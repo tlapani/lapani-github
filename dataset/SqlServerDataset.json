@@ -1,6 +1,7 @@
 {
-	"name": "AzureSqlDatabaseDataset",
+	"name": "SqlServerDataset",
 	"properties": {
+		"description": "A dataset pointing to dummy table in SQL server ",
 		"linkedServiceName": {
 			"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
 			"type": "LinkedServiceReference"
