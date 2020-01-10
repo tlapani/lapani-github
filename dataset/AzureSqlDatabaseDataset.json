@@ -9,6 +9,9 @@
 		"parameters": {
 			"DWTableName": {
 				"type": "string"
+			},
+			"DWSchemaName": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -16,6 +19,10 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": {
+				"value": "@dataset().DWSchemaName",
+				"type": "Expression"
+			},
+			"table": {
 				"value": "@dataset().DWTableName",
 				"type": "Expression"
 			}
