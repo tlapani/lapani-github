@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ASQLDB_LS_Entertainment'"
 		},
+		"AzureSynapseAnalyticsDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
+		},
 		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
@@ -26,10 +30,6 @@
 		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
-		},
-		"AzureSynapseAnalyticsDW_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
 		},
 		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 			"type": "string",
@@ -59,6 +59,81 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQL_to_ASQLDataWarehouse')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Load data into Azure SQL Data Warehouse (Azure Synapse Analytics)",
+				"activities": [
+					{
+						"name": "ASQLDB_to_ASQLDataWarehouse",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "lego.themes"
+							},
+							{
+								"name": "Destination",
+								"value": "."
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"allowPolyBase": true,
+								"polyBaseSettings": {
+									"rejectValue": 0,
+									"rejectType": "value",
+									"useTypeDefault": false
+								}
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "ADLB_lapaniazureblob",
+									"type": "LinkedServiceReference"
+								},
+								"path": "sqltableasfile"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ASQLDB_Lego_Themes",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "AzureSynapseAnalyticsTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable')]",
+				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Execute SSIS package')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -99,6 +174,93 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/integrationRuntimes/LapaniAzureSSISIR')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IterateAndCopyTablesSQLtoASQL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline receiving array as parameter. It will iterate through each incoming table name and copy that table from SQL serve to Azure SQL database.",
+				"activities": [
+					{
+						"name": "IterateSQLTables",
+						"description": "Get schema and table name from incoming array at each iteration of loop and pass it to copy data activity",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.tableList",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data SqlServer to AzureSQLdatabase",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "SELECT * FROM [@{item().TABLE_SCHEMA}].[@{item().TABLE_NAME}]",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlServerDataset",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "AzureSqlDatabaseDataset",
+											"type": "DatasetReference",
+											"parameters": {
+												"DWTableName": {
+													"value": "[[@{item().TABLE_NAME}]",
+													"type": "Expression"
+												},
+												"DWSchemaName": {
+													"value": "[[@{item().TABLE_SCHEMA}]",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"tableList": {
+						"type": "array"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SqlServerDataset')]",
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatabaseDataset')]"
 			]
 		},
 		{
@@ -435,6 +597,697 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_AllRows')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using configuration file as source dataset but processing ALL rows",
+				"activities": [
+					{
+						"name": "Lookup ConfigFileADSL",
+						"description": "Lookup using configuration File as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ADLS_Lego_ConfigurationFile",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach file",
+						"description": "ForEach activity will receive input (lookup output) in form of array because lookup is configured to return all rows and not first row only.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Filter Active Files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Filter Active Files').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Execute Pipeline1",
+									"description": "Run existing pipeline dynamically by passing one filename (received from Lookup activity) at a time as parameter  to pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": {
+												"value": "@item().SourceFileName",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Filter Active Files",
+						"description": "Filter lookup output based on IsActive column or field. Here we keeping rows which has IsActive value 1",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Lookup ConfigFileADSL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup ConfigFileADSL').output.value",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@equals(item().IsActive,'1')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]",
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_FirstRow')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using configuration file as source dataset but processing only first row",
+				"activities": [
+					{
+						"name": "Lookup ConfigFileADSL",
+						"description": "Lookup using configuration File as source dataset",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "ADLS_Lego_ConfigurationFile",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": true
+						}
+					},
+					{
+						"name": "HTTP_Lego_Dynamic",
+						"description": "Run existing pipeline dynamically by passing filename (received from Lookup activity) as parameter  to pipeline",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Lookup ConfigFileADSL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"FileName": {
+									"value": "@activity('Lookup ConfigFileADSL').output.firstRow.SourceFileName",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]",
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_AllRows')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Lookup using Azure SQL database table as source dataset and process all rows",
+				"activities": [
+					{
+						"name": "Lookup Configuration Table",
+						"description": "Lookup using configuration table as source dataset to process all rows",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "select * from etl.ConfigurationTable where isactive=1;",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "ASQLDB_Lego_ConfigurationTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach File",
+						"description": "Loop through each lookup output row",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup Configuration Table",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup Configuration Table').output.value",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "HTTP_to_ADLS",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": {
+												"value": "@item().SourceFileName",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_ConfigurationTable')]",
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Lego_Variables_ForEachLoop')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline to show how variables and foreach work in ADF.",
+				"activities": [
+					{
+						"name": "Setting File variable",
+						"description": "Assigning array to File variable",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Files",
+							"value": [
+								"colors",
+								"inventories",
+								"inventory_parts",
+								"part_categories",
+								"parts",
+								"sets",
+								"themes"
+							]
+						}
+					},
+					{
+						"name": "Whether to load all files",
+						"description": "Condition decides whether we loading all files or not",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Setting File variable",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@pipeline().parameters.LoadAllFiles",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "Appending files variable",
+									"description": "Appending one file name into existing array contained by variable",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "Files",
+										"value": "inventory_sets"
+									}
+								},
+								{
+									"name": "Appending Files variable again",
+									"description": "Appending one more filename into existing list of filenames",
+									"type": "AppendVariable",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "Files",
+										"value": "part_relationships"
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ForEach File",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Whether to load all files",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('Files')",
+								"type": "Expression"
+							},
+							"isSequential": false,
+							"activities": [
+								{
+									"name": "Execute Lego_HTTP_to_ADSL Pipeline",
+									"description": "Execute Dynamic Pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"FileName": {
+												"value": "@item()",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"LoadAllFiles": {
+						"type": "bool"
+					}
+				},
+				"variables": {
+					"Files": {
+						"type": "Array"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/OnPremise_Emp_SQL_to_ADLS')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Copying EMP table data from SQL server on premise database to ADLS",
+				"activities": [
+					{
+						"name": "CopyFromOnPremiseSqlToAzureBlob",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "dbo.emp"
+							},
+							{
+								"name": "Destination",
+								"value": "sqltableasfile//emp"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "empno",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 1
+										}
+									},
+									{
+										"source": {
+											"name": "ename",
+											"type": "String"
+										},
+										"sink": {
+											"type": "String",
+											"ordinal": 2
+										}
+									},
+									{
+										"source": {
+											"name": "job",
+											"type": "String"
+										},
+										"sink": {
+											"type": "String",
+											"ordinal": 3
+										}
+									},
+									{
+										"source": {
+											"name": "mgr",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 4
+										}
+									},
+									{
+										"source": {
+											"name": "hiredate",
+											"type": "DateTime"
+										},
+										"sink": {
+											"type": "DateTime",
+											"ordinal": 5
+										}
+									},
+									{
+										"source": {
+											"name": "sal",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 6
+										}
+									},
+									{
+										"source": {
+											"name": "comm",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 7
+										}
+									},
+									{
+										"source": {
+											"name": "deptno",
+											"type": "Int32"
+										},
+										"sink": {
+											"type": "Int32",
+											"ordinal": 8
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "OnPremiseSQLEmpTable",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ADLB_Emp_File",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/OnPremiseSQLEmpTable')]",
+				"[concat(variables('factoryId'), '/datasets/ADLB_Emp_File')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLtoASQLGetTableListAndRunCopyData')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Get list of tables from on-premise SQL server database and then trigger another pipeline to copy those tables to Azure SQL database",
+				"activities": [
+					{
+						"name": "LookupTableList",
+						"description": "Getting list of tables",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SqlServerSource",
+								"sqlReaderQuery": "SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES \nwhere TABLE_SCHEMA='dbo'",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "SqlServerDataset",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Execute Pipeline IterateAndCopyTablesSQLtoASQL",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "LookupTableList",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "IterateAndCopyTablesSQLtoASQL",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"tableList": {
+									"value": "@activity('LookupTableList').output.value",
+									"type": "Expression"
+								}
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SqlServerDataset')]",
+				"[concat(variables('factoryId'), '/pipelines/IterateAndCopyTablesSQLtoASQL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLB_Emp_File')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ADLB_lapaniazureblob",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "emp",
+						"container": "sqltableasfile"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ADLS_Lego_ConfigurationFile')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Configuration file will be used as source dataset in a lookup",
+				"linkedServiceName": {
+					"referenceName": "ADLS_lapaniazuredatalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "LegoConfigurationFile.csv",
+						"fileSystem": "lego"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ADLS_lapaniazuredatalake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ADLS_Lego_Dynamic')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -527,6 +1380,44 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_ConfigurationTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SourceSystem",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileName",
+						"type": "varchar"
+					},
+					{
+						"name": "SourceFileExtension",
+						"type": "varchar"
+					},
+					{
+						"name": "IsActive",
+						"type": "bit"
+					}
+				],
+				"typeProperties": {
+					"schema": "etl",
+					"table": "ConfigurationTable"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_Themes')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -565,6 +1456,82 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabaseDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Azure SQL database as destination dataset to copy tables from on-premise sql server database",
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"DWTableName": {
+						"type": "string"
+					},
+					"DWSchemaName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().DWSchemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().DWTableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsDW",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "parent_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "load_date",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "lego",
+					"table": "themes"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsDW')]"
 			]
 		},
 		{
@@ -673,6 +1640,88 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/OnPremiseSQLEmpTable')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Emp table data from On-premise SQL server table",
+				"linkedServiceName": {
+					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "empno",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ename",
+						"type": "varchar"
+					},
+					{
+						"name": "job",
+						"type": "varchar"
+					},
+					{
+						"name": "mgr",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "hiredate",
+						"type": "date"
+					},
+					{
+						"name": "sal",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "comm",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "deptno",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "emp"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlServer_Viyandb_CCICPC0NZ72M')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlServerDataset')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "A dataset pointing to dummy table in SQL server ",
+				"linkedServiceName": {
+					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "FakeTableName"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SqlServer_Viyandb_CCICPC0NZ72M')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SqlServer_Viyan_CCICPC0NZ72M')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -748,6 +1797,20 @@
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
 					"connectionString": "[parameters('ASQLDB_LS_Entertainment_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDW')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "formely known as Azure SQL data warehouse",
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureSynapseAnalyticsDW_connectionString')]"
 				}
 			},
 			"dependsOn": []
@@ -924,968 +1987,12 @@
 							"name": "DeriveLoadDate"
 						}
 					],
-					"script": "\n\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tparent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true) ~> ADLSLegoThemesData\nADLSLegoThemesData derive(load_date = currentDate()) ~> DeriveLoadDate\nDeriveLoadDate sink(input(\n\t\tid as integer,\n\t\tname as string,\n\t\tparent_id as integer,\n\t\tload_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table',\n\tmapColumn(\n\t\tname,\n\t\tparent_id,\n\t\tload_date\n\t)) ~> ASQLLegoThemes"
+					"script": "\n\nsource(output(\n\t\tid as string,\n\t\tname as string,\n\t\tparent_id as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tinferDriftedColumnTypes: true) ~> ADLSLegoThemesData\nADLSLegoThemesData derive(load_date = currentDate()) ~> DeriveLoadDate\nDeriveLoadDate sink(input(\n\t\tid as integer,\n\t\tname as string,\n\t\tparent_id as integer,\n\t\tload_date as date\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\ttruncate:true,\n\tformat: 'table') ~> ASQLLegoThemes"
 				}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_Themes')]",
 				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Variables_ForEachLoop')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Pipeline to show how variables and foreach work in ADF.",
-				"activities": [
-					{
-						"name": "Setting File variable",
-						"description": "Assigning array to File variable",
-						"type": "SetVariable",
-						"dependsOn": [],
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "Files",
-							"value": [
-								"colors",
-								"inventories",
-								"inventory_parts",
-								"part_categories",
-								"parts",
-								"sets",
-								"themes"
-							]
-						}
-					},
-					{
-						"name": "Whether to load all files",
-						"description": "Condition decides whether we loading all files or not",
-						"type": "IfCondition",
-						"dependsOn": [
-							{
-								"activity": "Setting File variable",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"expression": {
-								"value": "@pipeline().parameters.LoadAllFiles",
-								"type": "Expression"
-							},
-							"ifTrueActivities": [
-								{
-									"name": "Appending files variable",
-									"description": "Appending one file name into existing array contained by variable",
-									"type": "AppendVariable",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "Files",
-										"value": "inventory_sets"
-									}
-								},
-								{
-									"name": "Appending Files variable again",
-									"description": "Appending one more filename into existing list of filenames",
-									"type": "AppendVariable",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"variableName": "Files",
-										"value": "part_relationships"
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "ForEach File",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Whether to load all files",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@variables('Files')",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "Execute Lego_HTTP_to_ADSL Pipeline",
-									"description": "Execute Dynamic Pipeline",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"FileName": {
-												"value": "@item()",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"parameters": {
-					"LoadAllFiles": {
-						"type": "bool"
-					}
-				},
-				"variables": {
-					"Files": {
-						"type": "Array"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ADLS_Lego_ConfigurationFile')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Configuration file will be used as source dataset in a lookup",
-				"linkedServiceName": {
-					"referenceName": "ADLS_lapaniazuredatalake",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "LegoConfigurationFile.csv",
-						"fileSystem": "lego"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					},
-					{
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ADLS_lapaniazuredatalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_FirstRow')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Lookup using configuration file as source dataset but processing only first row",
-				"activities": [
-					{
-						"name": "Lookup ConfigFileADSL",
-						"description": "Lookup using configuration File as source dataset",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"dataset": {
-								"referenceName": "ADLS_Lego_ConfigurationFile",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": true
-						}
-					},
-					{
-						"name": "HTTP_Lego_Dynamic",
-						"description": "Run existing pipeline dynamically by passing filename (received from Lookup activity) as parameter  to pipeline",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "Lookup ConfigFileADSL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {
-								"FileName": {
-									"value": "@activity('Lookup ConfigFileADSL').output.firstRow.SourceFileName",
-									"type": "Expression"
-								}
-							}
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]",
-				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ASQLDB_Lego_ConfigurationTable')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ASQLDB_LS_Entertainment",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [
-					{
-						"name": "SourceSystem",
-						"type": "varchar"
-					},
-					{
-						"name": "SourceFileName",
-						"type": "varchar"
-					},
-					{
-						"name": "SourceFileExtension",
-						"type": "varchar"
-					},
-					{
-						"name": "IsActive",
-						"type": "bit"
-					}
-				],
-				"typeProperties": {
-					"schema": "etl",
-					"table": "ConfigurationTable"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigTable_AllRows')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Lookup using Azure SQL database table as source dataset and process all rows",
-				"activities": [
-					{
-						"name": "Lookup Configuration Table",
-						"description": "Lookup using configuration table as source dataset to process all rows",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "select * from etl.ConfigurationTable where isactive=1;",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "ASQLDB_Lego_ConfigurationTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEach File",
-						"description": "Loop through each lookup output row",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Lookup Configuration Table",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Lookup Configuration Table').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "HTTP_to_ADLS",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"FileName": "@item().SourceFileName"
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_ConfigurationTable')]",
-				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Lego_Lookup_ConfigFile_AllRows')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Lookup using configuration file as source dataset but processing ALL rows",
-				"activities": [
-					{
-						"name": "Lookup ConfigFileADSL",
-						"description": "Lookup using configuration File as source dataset",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"dataset": {
-								"referenceName": "ADLS_Lego_ConfigurationFile",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEach file",
-						"description": "ForEach activity will receive input (lookup output) in form of array because lookup is configured to return all rows and not first row only.",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Filter Active Files",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Filter Active Files').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "Execute Pipeline1",
-									"description": "Run existing pipeline dynamically by passing one filename (received from Lookup activity) at a time as parameter  to pipeline",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "Lego_HTTP_To_ADLS_Dynamic",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"FileName": {
-												"value": "@item().SourceFileName",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					},
-					{
-						"name": "Filter Active Files",
-						"description": "Filter lookup output based on IsActive column or field. Here we keeping rows which has IsActive value 1",
-						"type": "Filter",
-						"dependsOn": [
-							{
-								"activity": "Lookup ConfigFileADSL",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Lookup ConfigFileADSL').output.value",
-								"type": "Expression"
-							},
-							"condition": {
-								"value": "@equals(item().IsActive,'1')",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ADLS_Lego_ConfigurationFile')]",
-				"[concat(variables('factoryId'), '/pipelines/Lego_HTTP_To_ADLS_Dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OnPremiseSQLEmpTable')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Emp table data from On-premise SQL server table",
-				"linkedServiceName": {
-					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [
-					{
-						"name": "empno",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "ename",
-						"type": "varchar"
-					},
-					{
-						"name": "job",
-						"type": "varchar"
-					},
-					{
-						"name": "mgr",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "hiredate",
-						"type": "date"
-					},
-					{
-						"name": "sal",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "comm",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "deptno",
-						"type": "int",
-						"precision": 10
-					}
-				],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "emp"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SqlServer_Viyandb_CCICPC0NZ72M')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/OnPremise_Emp_SQL_to_ADLS')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Copying EMP table data from SQL server on premise database to ADLS",
-				"activities": [
-					{
-						"name": "CopyFromOnPremiseSqlToAzureBlob",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "dbo.emp"
-							},
-							{
-								"name": "Destination",
-								"value": "sqltableasfile//emp"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"queryTimeout": "02:00:00"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "empno",
-											"type": "Int32"
-										},
-										"sink": {
-											"type": "Int32",
-											"ordinal": 1
-										}
-									},
-									{
-										"source": {
-											"name": "ename",
-											"type": "String"
-										},
-										"sink": {
-											"type": "String",
-											"ordinal": 2
-										}
-									},
-									{
-										"source": {
-											"name": "job",
-											"type": "String"
-										},
-										"sink": {
-											"type": "String",
-											"ordinal": 3
-										}
-									},
-									{
-										"source": {
-											"name": "mgr",
-											"type": "Int32"
-										},
-										"sink": {
-											"type": "Int32",
-											"ordinal": 4
-										}
-									},
-									{
-										"source": {
-											"name": "hiredate",
-											"type": "DateTime"
-										},
-										"sink": {
-											"type": "DateTime",
-											"ordinal": 5
-										}
-									},
-									{
-										"source": {
-											"name": "sal",
-											"type": "Int32"
-										},
-										"sink": {
-											"type": "Int32",
-											"ordinal": 6
-										}
-									},
-									{
-										"source": {
-											"name": "comm",
-											"type": "Int32"
-										},
-										"sink": {
-											"type": "Int32",
-											"ordinal": 7
-										}
-									},
-									{
-										"source": {
-											"name": "deptno",
-											"type": "Int32"
-										},
-										"sink": {
-											"type": "Int32",
-											"ordinal": 8
-										}
-									}
-								]
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "OnPremiseSQLEmpTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ADLB_Emp_File",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/OnPremiseSQLEmpTable')]",
-				"[concat(variables('factoryId'), '/datasets/ADLB_Emp_File')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ADLB_Emp_File')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ADLB_lapaniazureblob",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "emp",
-						"container": "sqltableasfile"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ASQL_to_ASQLDataWarehouse')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Load data into Azure SQL Data Warehouse (Azure Synapse Analytics)",
-				"activities": [
-					{
-						"name": "ASQLDB_to_ASQLDataWarehouse",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "lego.themes"
-							},
-							{
-								"name": "Destination",
-								"value": "."
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"queryTimeout": "02:00:00"
-							},
-							"sink": {
-								"type": "SqlDWSink",
-								"allowPolyBase": true,
-								"polyBaseSettings": {
-									"rejectValue": 0,
-									"rejectType": "value",
-									"useTypeDefault": false
-								}
-							},
-							"enableStaging": true,
-							"stagingSettings": {
-								"linkedServiceName": {
-									"referenceName": "ADLB_lapaniazureblob",
-									"type": "LinkedServiceReference"
-								},
-								"path": "sqltableasfile"
-							},
-							"translator": {
-								"type": "TabularTranslator",
-								"mappings": [
-									{
-										"source": {
-											"name": "id",
-											"type": "Int32"
-										},
-										"sink": {
-											"name": "id",
-											"type": "Int32"
-										}
-									},
-									{
-										"source": {
-											"name": "name",
-											"type": "String"
-										},
-										"sink": {
-											"name": "name",
-											"type": "String"
-										}
-									},
-									{
-										"source": {
-											"name": "parent_id",
-											"type": "Int32"
-										},
-										"sink": {
-											"name": "parent_id",
-											"type": "Int32"
-										}
-									},
-									{
-										"source": {
-											"name": "load_date",
-											"type": "DateTime"
-										},
-										"sink": {
-											"name": "load_date",
-											"type": "DateTime"
-										}
-									}
-								]
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ASQLDB_Lego_Themes",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "AzureSynapseAnalyticsTable",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ASQLDB_Lego_Themes')]",
-				"[concat(variables('factoryId'), '/datasets/AzureSynapseAnalyticsTable')]",
-				"[concat(variables('factoryId'), '/linkedServices/ADLB_lapaniazureblob')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsDW')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "formely known as Azure SQL data warehouse",
-				"annotations": [],
-				"type": "AzureSqlDW",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSynapseAnalyticsDW_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSynapseAnalyticsTable')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureSynapseAnalyticsDW",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlDWTable",
-				"schema": [
-					{
-						"name": "id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "name",
-						"type": "varchar"
-					},
-					{
-						"name": "parent_id",
-						"type": "int",
-						"precision": 10
-					},
-					{
-						"name": "load_date",
-						"type": "date"
-					}
-				],
-				"typeProperties": {
-					"schema": "lego",
-					"table": "themes"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsDW')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SQLtoASQLGetTableListAndRunCopyData')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Get list of tables from on-premise SQL server database and then trigger another pipeline to copy those tables to Azure SQL database",
-				"activities": [
-					{
-						"name": "LookupTableList",
-						"description": "Getting list of tables",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": "SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES \nwhere TABLE_SCHEMA='dbo'",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "SqlServerDataset",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlServerDataset')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlServerDataset')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "A dataset pointing to dummy table in SQL server ",
-				"linkedServiceName": {
-					"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "FakeTableName"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SqlServer_Viyandb_CCICPC0NZ72M')]"
 			]
 		}
 	]

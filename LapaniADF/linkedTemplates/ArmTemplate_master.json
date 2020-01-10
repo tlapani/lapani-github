@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ASQLDB_LS_Entertainment'"
 		},
+		"AzureSynapseAnalyticsDW_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
+		},
 		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
@@ -26,10 +30,6 @@
 		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
-		},
-		"AzureSynapseAnalyticsDW_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
 		},
 		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 			"type": "string",
