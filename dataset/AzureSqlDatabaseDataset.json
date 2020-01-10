@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlDatabaseDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SqlServer_Viyandb_CCICPC0NZ72M",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "FakeTableName"
+		}
+	}
+}

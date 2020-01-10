@@ -2,6 +2,32 @@
 	"name": "SQLtoASQLGetTableListAndRunCopyData",
 	"properties": {
 		"description": "Get list of tables from on-premise SQL server database and then trigger another pipeline to copy those tables to Azure SQL database",
+		"activities": [
+			{
+				"name": "LookupTableList",
+				"description": "Getting list of tables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlDatabaseDataset",
+						"type": "DatasetReference"
+					}
+				}
+			}
+		],
 		"annotations": []
 	}
 }
