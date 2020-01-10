@@ -1700,6 +1700,51 @@
 									"type": "LinkedServiceReference"
 								},
 								"path": "sqltableasfile"
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "id",
+											"type": "Int32"
+										},
+										"sink": {
+											"name": "id",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "parent_id",
+											"type": "Int32"
+										},
+										"sink": {
+											"name": "parent_id",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "load_date",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "load_date",
+											"type": "DateTime"
+										}
+									}
+								]
 							}
 						},
 						"inputs": [
@@ -1751,7 +1796,26 @@
 				},
 				"annotations": [],
 				"type": "AzureSqlDWTable",
-				"schema": [],
+				"schema": [
+					{
+						"name": "id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "name",
+						"type": "varchar"
+					},
+					{
+						"name": "parent_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "load_date",
+						"type": "date"
+					}
+				],
 				"typeProperties": {
 					"schema": "lego",
 					"table": "themes"
