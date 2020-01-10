@@ -30,12 +30,11 @@
 							"typeProperties": {
 								"source": {
 									"type": "SqlServerSource",
-									"sqlReaderQuery": "SELECT * FROM @{item().TABLE_SCHEMA}.@{item().TABLE_NAME}",
+									"sqlReaderQuery": "SELECT * FROM [@{item().TABLE_SCHEMA}].[@{item().TABLE_NAME}]",
 									"queryTimeout": "02:00:00"
 								},
 								"sink": {
 									"type": "AzureSqlSink",
-									"preCopyScript": "truncate @{item().TABLE_SCHEMA}.@{item().TABLE_NAME}",
 									"tableOption": "autoCreate",
 									"disableMetricsCollection": false
 								},
