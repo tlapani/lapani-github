@@ -6,8 +6,22 @@
 			"referenceName": "ASQLDB_LS_Entertainment",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"DWTableName": {
+				"type": "string"
+			},
+			"DWSchemaName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
-		"schema": []
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "dataset().DWTableName",
+				"type": "Expression"
+			}
+		}
 	}
 }
