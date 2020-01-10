@@ -21,7 +21,7 @@
 					},
 					{
 						"name": "Destination",
-						"value": "sqltableasfile//"
+						"value": "sqltableasfile//emp"
 					}
 				],
 				"typeProperties": {
