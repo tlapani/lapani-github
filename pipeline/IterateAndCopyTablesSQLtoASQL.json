@@ -1,0 +1,21 @@
+{
+	"name": "IterateAndCopyTablesSQLtoASQL",
+	"properties": {
+		"description": "Pipeline receiving array as parameter. It will iterate through each incoming table name and copy that table from SQL serve to Azure SQL database.",
+		"activities": [
+			{
+				"name": "IterateSQLTables",
+				"description": "Get schema and table name from incoming array at each iteration of loop and pass it to copy data activity",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": []
+			}
+		],
+		"parameters": {
+			"tableList ": {
+				"type": "array"
+			}
+		},
+		"annotations": []
+	}
+}
