@@ -28,6 +28,22 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "Execute IterateAndCopyTableASQLto ASQLDW",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "GetTableListAndTriggerCopyData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitOnCompletion": true
+				}
 			}
 		],
 		"annotations": []
