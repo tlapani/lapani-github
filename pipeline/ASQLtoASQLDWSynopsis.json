@@ -1,0 +1,7 @@
+{
+	"name": "ASQLtoASQLDWSynopsis",
+	"properties": {
+		"description": "copying tables from Azure SQL database to Azure Datawarehouse",
+		"annotations": []
+	}
+}
