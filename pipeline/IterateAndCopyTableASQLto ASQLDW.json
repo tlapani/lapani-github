@@ -7,9 +7,20 @@
 				"name": "IterateASQLTables",
 				"description": "Go through each table name in a array received  from lookup",
 				"type": "ForEach",
-				"dependsOn": []
+				"dependsOn": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.ObjectList",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"parameters": {
+			"ObjectList": {
+				"type": "array"
+			}
+		},
 		"annotations": []
 	}
 }
