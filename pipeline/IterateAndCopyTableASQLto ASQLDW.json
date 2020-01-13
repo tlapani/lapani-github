@@ -38,9 +38,21 @@
 								},
 								"sink": {
 									"type": "SqlDWSink",
-									"tableOption": "autoCreate"
+									"allowPolyBase": true,
+									"polyBaseSettings": {
+										"rejectValue": 0,
+										"rejectType": "value",
+										"useTypeDefault": false
+									}
 								},
-								"enableStaging": false
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "ADLB_lapaniazureblob",
+										"type": "LinkedServiceReference"
+									},
+									"path": "sqltableasfile"
+								}
 							},
 							"inputs": [
 								{
