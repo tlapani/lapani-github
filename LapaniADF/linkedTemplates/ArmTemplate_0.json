@@ -23,14 +23,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSynapseAnalyticsDW'"
 		},
-		"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
-		},
-		"SqlServer_Viyandb_CCICPC0NZ72M_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'SqlServer_Viyandb_CCICPC0NZ72M'"
-		},
 		"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://lapaniazuredatalake.dfs.core.windows.net"
@@ -49,10 +41,6 @@
 		},
 		"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
 			"type": "secureString"
-		},
-		"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "CCIC\\tlapani"
 		}
 	},
 	"variables": {
@@ -466,6 +454,41 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ASQLDWAzureSynapseAsTarget')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsDW",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string"
+					},
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureSynapseAnalyticsDW')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabaseDataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -495,6 +518,37 @@
 						"value": "@dataset().DWTableName",
 						"type": "Expression"
 					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ASQLDB_LS_Entertainment')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatasetAsSource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NAME",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "[[dbo]",
+					"table": "[[CONTINENT]"
 				}
 			},
 			"dependsOn": [
@@ -603,72 +657,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/Http_Lego')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/HTTP_Lego_Themes')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Http_Lego",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "HttpServerLocation",
-						"relativeUrl": "themes.csv"
-					},
-					"columnDelimiter": ",",
-					"rowDelimiter": "\n",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "id",
-						"type": "String"
-					},
-					{
-						"name": "name",
-						"type": "String"
-					},
-					{
-						"name": "parent_id",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Http_Lego')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlServer_Viyandb_CCICPC0NZ72M')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Connection to on-premise database on local SQL server CCICPC0NZ72M via self-hosted Azure integration runtime service",
-				"annotations": [],
-				"type": "SqlServer",
-				"typeProperties": {
-					"connectionString": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_connectionString')]",
-					"userName": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName')]",
-					"password": {
-						"type": "SecureString",
-						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_password')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "LapaniSelfHostedIRtoSSMSonPremise",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/LapaniSelfHostedIRtoSSMSonPremise')]"
 			]
 		}
 	]

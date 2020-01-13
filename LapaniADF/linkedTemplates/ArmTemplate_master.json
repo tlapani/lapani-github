@@ -93,12 +93,6 @@
 					"AzureSynapseAnalyticsDW_connectionString": {
 						"value": "[parameters('AzureSynapseAnalyticsDW_connectionString')]"
 					},
-					"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
-						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_connectionString')]"
-					},
-					"SqlServer_Viyandb_CCICPC0NZ72M_password": {
-						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_password')]"
-					},
 					"ADLS_lapaniazuredatalake_properties_typeProperties_url": {
 						"value": "[parameters('ADLS_lapaniazuredatalake_properties_typeProperties_url')]"
 					},
@@ -113,9 +107,6 @@
 					},
 					"LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword": {
 						"value": "[parameters('LapaniAzureSSISIR_properties_typeProperties_ssisProperties_catalogInfo_catalogAdminPassword')]"
-					},
-					"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
-						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName')]"
 					}
 				}
 			},
@@ -134,6 +125,15 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_connectionString": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_connectionString')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_password": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_password')]"
+					},
+					"SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName": {
+						"value": "[parameters('SqlServer_Viyandb_CCICPC0NZ72M_properties_typeProperties_userName')]"
 					}
 				}
 			},
