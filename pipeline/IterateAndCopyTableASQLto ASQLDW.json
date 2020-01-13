@@ -8,6 +8,7 @@
 				"description": "Go through each table name in a array received  from lookup",
 				"type": "ForEach",
 				"dependsOn": [],
+				"userProperties": [],
 				"typeProperties": {
 					"items": {
 						"value": "@pipeline().parameters.ObjectList",
@@ -45,14 +46,7 @@
 									},
 									"tableOption": "autoCreate"
 								},
-								"enableStaging": true,
-								"stagingSettings": {
-									"linkedServiceName": {
-										"referenceName": "ADLB_lapaniazureblob",
-										"type": "LinkedServiceReference"
-									},
-									"path": "sqltableasfile"
-								}
+								"enableStaging": false
 							},
 							"inputs": [
 								{
