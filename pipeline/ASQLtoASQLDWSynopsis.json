@@ -49,7 +49,7 @@
 					"waitOnCompletion": true,
 					"parameters": {
 						"ObjectList": {
-							"value": "@activity('GetTableListAndTriggerCopyData').output",
+							"value": "@activity('GetTableListAndTriggerCopyData').output.value",
 							"type": "Expression"
 						}
 					}
