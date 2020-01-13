@@ -42,7 +42,17 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"waitOnCompletion": true
+					"pipeline": {
+						"referenceName": "IterateAndCopyTableASQLto ASQLDW",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"ObjectList": {
+							"value": "@activity('GetTableListAndTriggerCopyData').output",
+							"type": "Expression"
+						}
+					}
 				}
 			}
 		],
