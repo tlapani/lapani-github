@@ -13,6 +13,68 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlDatasetAsSource')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ASQLDB_LS_Entertainment",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NAME",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "[[dbo]",
+					"table": "[[CONTINENT]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ASQLDWAzureSynapseAsTarget')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSynapseAnalyticsDW",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string"
+					},
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ASQL_to_ASQLDataWarehouse')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -417,6 +479,92 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/IterateAndCopyTableASQLto ASQLDW')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Pipeline receiving array as parameter. It will iterate through each incoming table name and copy that table from Azure SQL server to Azure SQL data warehouse.",
+				"activities": [
+					{
+						"name": "IterateASQLTables",
+						"description": "Go through each table name in a array received  from lookup",
+						"type": "ForEach",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.ObjectList",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "IterateAndCopyASQLTables",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "select * from @{item().TABLE_SCHEMA}.@{item().TABLE_NAME}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"tableOption": "autoCreate"
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "AzureSqlDatasetAsSource",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ASQLDWAzureSynapseAsTarget",
+											"type": "DatasetReference",
+											"parameters": {
+												"SchemaName": {
+													"value": "@item().TABLE_SCHEMA",
+													"type": "Expression"
+												},
+												"TableName": {
+													"value": "@item().TABLE_NAME",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"ObjectList": {
+						"type": "array"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatasetAsSource')]",
+				"[concat(variables('factoryId'), '/datasets/ASQLDWAzureSynapseAsTarget')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/IterateAndCopyTablesSQLtoASQL')]",
@@ -1242,15 +1390,15 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/SQLtoASQLGetTableListAndRunCopyData')]",
+			"name": "[concat(parameters('factoryName'), '/ASQLtoASQLDWSynopsis')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Get list of tables from on-premise SQL server database and then trigger another pipeline to copy those tables to Azure SQL database",
+				"description": "copying tables from Azure SQL database to Azure Datawarehouse",
 				"activities": [
 					{
-						"name": "LookupTableList",
-						"description": "Getting list of tables",
+						"name": "GetTableListAndTriggerCopyData",
+						"description": "Get list of tales in Azure SQL database and then execute another pipeline to copy data",
 						"type": "Lookup",
 						"dependsOn": [],
 						"policy": {
@@ -1263,12 +1411,12 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": "SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES \nwhere TABLE_SCHEMA='dbo'",
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES",
 								"queryTimeout": "02:00:00"
 							},
 							"dataset": {
-								"referenceName": "SqlServerDataset",
+								"referenceName": "AzureSqlDatasetAsSource",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -1276,11 +1424,11 @@
 						}
 					},
 					{
-						"name": "Execute Pipeline IterateAndCopyTablesSQLtoASQL",
+						"name": "Execute IterateAndCopyTableASQLto ASQLDW",
 						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
-								"activity": "LookupTableList",
+								"activity": "GetTableListAndTriggerCopyData",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1289,13 +1437,13 @@
 						"userProperties": [],
 						"typeProperties": {
 							"pipeline": {
-								"referenceName": "IterateAndCopyTablesSQLtoASQL",
+								"referenceName": "IterateAndCopyTableASQLto ASQLDW",
 								"type": "PipelineReference"
 							},
 							"waitOnCompletion": true,
 							"parameters": {
-								"tableList": {
-									"value": "@activity('LookupTableList').output.value",
+								"ObjectList": {
+									"value": "@activity('GetTableListAndTriggerCopyData').output.value",
 									"type": "Expression"
 								}
 							}
@@ -1305,8 +1453,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlServerDataset')]",
-				"[concat(variables('factoryId'), '/pipelines/IterateAndCopyTablesSQLtoASQL')]"
+				"[concat(variables('factoryId'), '/datasets/AzureSqlDatasetAsSource')]",
+				"[concat(variables('factoryId'), '/pipelines/IterateAndCopyTableASQLto ASQLDW')]"
 			]
 		}
 	]
