@@ -42,7 +42,8 @@
 										"rejectValue": 0,
 										"rejectType": "value",
 										"useTypeDefault": true
-									}
+									},
+									"tableOption": "autoCreate"
 								},
 								"enableStaging": false
 							},
