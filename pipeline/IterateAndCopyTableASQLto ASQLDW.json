@@ -1,0 +1,7 @@
+{
+	"name": "IterateAndCopyTableASQLto ASQLDW",
+	"properties": {
+		"description": "Pipeline receiving array as parameter. It will iterate through each incoming table name and copy that table from Azure SQL server to Azure SQL data warehouse.",
+		"annotations": []
+	}
+}
